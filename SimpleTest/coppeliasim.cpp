@@ -12,7 +12,7 @@ bool CoppeliaSim::connect(int port)
 			this->connected = true;
 			printf("> CoppeliaSIM connection success! Client ID : %d \n", clientID);
 			// Start simulation:
-			simxStartSimulation(clientID, simx_opmode_oneshot_wait);
+			//simxStartSimulation(clientID, simx_opmode_oneshot_wait);
 			return true;
 		}
 		else {
@@ -25,12 +25,20 @@ bool CoppeliaSim::connect(int port)
 	return false;
 }
 
+
 // Diconnect from CoppeliaSim
 ////////////////////////////////////////////////////////////////////
 void CoppeliaSim::disconnect(int clientID)
 {
 	this->connected = false;
 	simxFinish(clientID);
+}
+// Start Simulation
+void CoppeliaSim::startSimulation() {
+	simxStartSimulation(clientID, simx_opmode_blocking);
+}
+void CoppeliaSim::stopSimulation() {
+	simxStopSimulation(clientID, simx_opmode_blocking);
 }
 
 
@@ -115,7 +123,7 @@ void CoppeliaRobot::init(string robot_name) {
 	//simxGetObjectPosition(clientID, ikTipHandle, robotHandle, __pos, simx_opmode_streaming);
 	//simxGetObjectOrientation(clientID, ikTipHandle, robotHandle, __rot, simx_opmode_streaming);
 	
-	/*
+	
 	simxCallScriptFunction(
 		clientID,
 		scriptName.c_str(),						// the name of the associated obejct script
@@ -130,7 +138,7 @@ void CoppeliaRobot::init(string robot_name) {
 		NULL, NULL,							// outStringCnt, outString
 		NULL, NULL,							// outBufferSize, outBuffer
 		simx_opmode_streaming);
-	*/
+	
 	//simxGetObjectPosition(clientID, ikTipHandle, robotHandle, __pos, simx_opmode_streaming);
 	//simxGetObjectOrientation(clientID, ikTipHandle, robotHandle, __rot, simx_opmode_streaming);
 }
@@ -178,7 +186,7 @@ void CoppeliaRobot::setPosition(float x, float y, float z, float w, float p, flo
 		clientID,
 		scriptName.c_str(),						// the name of the associated obejct script
 		sim_scripttype_childscript,			// the handle of the script
-		"remoteApi_movePosition",						// Function name
+		"remoteApi_movePosition",			// Function name
 		0, NULL,							// inIntCnt, inInt
 		6, pos,								// inFloatCnt, inFloat
 		0, NULL,							// inStringCnt, inString
@@ -187,7 +195,7 @@ void CoppeliaRobot::setPosition(float x, float y, float z, float w, float p, flo
 		NULL, NULL,							// outFloatCnt, outFloat
 		NULL, NULL,							// outStringCnt, outString
 		NULL, NULL,							// outBufferSize, outBuffer
-		simx_opmode_blocking);
+		simx_opmode_oneshot);
 }
 
 
@@ -438,18 +446,24 @@ void CoppeliaRobot::setPosition2(float pos[6])
 ///////////////////////////////////////////////////////////////////////
 void CoppeliaRobot::setSpeed(int velocity)
 {
+	float lin_vel = (float) velocity / 1000;
+	float ang_vel = 10.0 * DEG_TO_RAD;
+
+	float vel_data[2] = {lin_vel, ang_vel};
+
+
 	int result = simxCallScriptFunction(
 		clientID,
 		scriptName.c_str(),						// the name of the associated obejct script
 		sim_scripttype_childscript,			// the handle of the script
 		"remoteApi_setSpeed",							// Function name
-		1, &velocity ,						// inIntCnt, inInt
-		0, NULL,							// inFloatCnt, inFloat
+		0, NULL,							// inIntCnt, inInt
+		2, vel_data,						// inFloatCnt, inFloat
 		0, NULL,							// inStringCnt, inString
 		0, NULL,							// inBufferSize, inBuffer
 		NULL, NULL,							// outIntCnt, outInt
 		NULL, NULL,							// outFloatCnt, outFloat
 		NULL, NULL,							// outStringCnt, outString
 		NULL, NULL,							// outBufferSize, outBuffer
-		simx_opmode_oneshot_wait);
+		simx_opmode_blocking);
 }

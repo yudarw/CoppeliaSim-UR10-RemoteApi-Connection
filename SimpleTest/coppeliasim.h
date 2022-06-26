@@ -27,6 +27,9 @@ public:
 public:
 	bool connect(int port);
 	void disconnect(int clientID);
+	void startSimulation();
+	void stopSimulation();
+
 };
 
 // Class Robot
