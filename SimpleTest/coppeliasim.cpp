@@ -88,18 +88,15 @@ void CoppeliaRobot::enableIk(bool enable)
 
 // Robot initialization: retreive some handles:
 //////////////////////////////////////////////////////////////////////	 
-void CoppeliaRobot::init(simxChar * robot_name) {
-	script_name = robot_name;
-	
-	string robot_obj_name(script_name);
-	string temp("/" + robot_obj_name);
+void CoppeliaRobot::init(string robot_name) {
+	string temp("/" + robot_name);
 	scriptName = temp;
-	string target_obj_name("./" + robot_obj_name + "/ikTarget");
-	string tip_obj_name   ("./" + robot_obj_name + "/ikTip");
-	string ft_obj_name    ("./" + robot_obj_name + "/force_sensor");
-	string targetPos_obj_name("./" + robot_obj_name + "/targetPos");
+	string target_obj_name("./" + robot_name + "/ikTarget");
+	string tip_obj_name   ("./" + robot_name + "/ikTip");
+	string ft_obj_name    ("./" + robot_name + "/force_sensor");
+	string targetPos_obj_name("./" + robot_name + "/targetPos");
 
-	simxGetObjectHandle(clientID, robot_obj_name.c_str(), &robotHandle, simx_opmode_blocking);
+	simxGetObjectHandle(clientID, robot_name.c_str(), &robotHandle, simx_opmode_blocking);
 	simxGetObjectHandle(clientID, target_obj_name.c_str(), &ikTargetHandle, simx_opmode_blocking);
 	simxGetObjectHandle(clientID, tip_obj_name.c_str(), &ikTipHandle, simx_opmode_blocking);
 	simxGetObjectHandle(clientID, ft_obj_name.c_str(), &ftHandle, simx_opmode_blocking);
@@ -118,7 +115,7 @@ void CoppeliaRobot::init(simxChar * robot_name) {
 	//simxGetObjectPosition(clientID, ikTipHandle, robotHandle, __pos, simx_opmode_streaming);
 	//simxGetObjectOrientation(clientID, ikTipHandle, robotHandle, __rot, simx_opmode_streaming);
 	
-	
+	/*
 	simxCallScriptFunction(
 		clientID,
 		scriptName.c_str(),						// the name of the associated obejct script
@@ -133,7 +130,7 @@ void CoppeliaRobot::init(simxChar * robot_name) {
 		NULL, NULL,							// outStringCnt, outString
 		NULL, NULL,							// outBufferSize, outBuffer
 		simx_opmode_streaming);
-	
+	*/
 	//simxGetObjectPosition(clientID, ikTipHandle, robotHandle, __pos, simx_opmode_streaming);
 	//simxGetObjectOrientation(clientID, ikTipHandle, robotHandle, __rot, simx_opmode_streaming);
 }
@@ -201,7 +198,7 @@ void CoppeliaRobot::setJointPosition(float joint[6]) {
 }
 void CoppeliaRobot::setJointPosition(float J1, float J2, float J3, float J4, float J5, float J6) 
 {
-	enableIk(false);						// Enable Joint MODE
+	//enableIk(false);						// Enable Joint MODE
 
 	float joint[6];
 	joint[0] = J1 * (DEG_TO_RAD);
@@ -213,9 +210,9 @@ void CoppeliaRobot::setJointPosition(float J1, float J2, float J3, float J4, flo
 
 	int result = simxCallScriptFunction(
 		clientID,
-		script_name,						// the name of the associated obejct script
+		scriptName.c_str(),						// the name of the associated obejct script
 		sim_scripttype_childscript,			// the handle of the script
-		"moveJointPosition",				// Function name
+		"remoteApi_moveJointPosition",				// Function name
 		0, NULL,							// inIntCnt, inInt
 		6, joint,							// inFloatCnt, inFloat
 		0, NULL,							// inStringCnt, inString
@@ -224,7 +221,7 @@ void CoppeliaRobot::setJointPosition(float J1, float J2, float J3, float J4, flo
 		NULL, NULL,							// outFloatCnt, outFloat
 		NULL, NULL,							// outStringCnt, outString
 		NULL, NULL,							// outBufferSize, outBuffer
-		simx_opmode_oneshot);
+		simx_opmode_blocking);
 	while (isMoving());						// Wait moving 
 }
 
@@ -234,7 +231,7 @@ void CoppeliaRobot::setJointPosition(int num, float tetha)
 	float jointAngle = tetha * DEG_TO_RAD;
 	int result = simxCallScriptFunction(
 		clientID,
-		script_name,						// the name of the associated obejct script
+		scriptName.c_str(),						// the name of the associated obejct script
 		sim_scripttype_childscript,			// the handle of the script
 		"moveSingleJointPosition",			// Function name
 		1, &num,							// inIntCnt, inInt
@@ -245,7 +242,7 @@ void CoppeliaRobot::setJointPosition(int num, float tetha)
 		NULL, NULL,							// outFloatCnt, outFloat
 		NULL, NULL,							// outStringCnt, outString
 		NULL, NULL,							// outBufferSize, outBuffer
-		simx_opmode_oneshot);
+		simx_opmode_oneshot_wait);
 
 	while (isMoving());
 }
@@ -258,7 +255,7 @@ void CoppeliaRobot::readCurrentJointPos(float joint_pos[6])
 	int * inData;
 	int result = simxCallScriptFunction(
 		clientID,
-		script_name,						// the name of the associated obejct script
+		scriptName.c_str(),						// the name of the associated obejct script
 		sim_scripttype_childscript,			// the handle of the script
 		"getJointPosition",					// Function name
 		0, NULL,							// inIntCnt, inInt
@@ -293,9 +290,9 @@ void CoppeliaRobot::gripperCatch()
 	int state = 0;
 	int result = simxCallScriptFunction(
 		clientID,
-		script_name,						// the name of the associated obejct script
+		scriptName.c_str(),						// the name of the associated obejct script
 		sim_scripttype_childscript,			// the handle of the script
-		"setGripper",						// Function name
+		"remoteApi_setGripper",						// Function name
 		1, &state,							// inIntCnt, inInt
 		0, NULL,							// inFloatCnt, inFloat
 		0, NULL,							// inStringCnt, inString
@@ -313,9 +310,9 @@ void CoppeliaRobot::gripperRelease()
 	int state = 1;
 	int result = simxCallScriptFunction(
 		clientID,
-		script_name,						// the name of the associated obejct script
+		scriptName.c_str(),						// the name of the associated obejct script
 		sim_scripttype_childscript,			// the handle of the script
-		"setGripper",						// Function name
+		"remoteApi_setGripper",						// Function name
 		1, &state,							// inIntCnt, inInt
 		0, NULL,							// inFloatCnt, inFloat
 		0, NULL,							// inStringCnt, inString
@@ -335,7 +332,7 @@ void CoppeliaRobot::getObjectMatrix(float M[4][4])
 	float *pData;
 	int result = simxCallScriptFunction(
 		clientID,
-		script_name,						// the name of the associated obejct script
+		scriptName.c_str(),						// the name of the associated obejct script
 		sim_scripttype_childscript,			// the handle of the script
 		"getObjectMatrix",						// Function name
 		0, NULL,							// inIntCnt, inInt

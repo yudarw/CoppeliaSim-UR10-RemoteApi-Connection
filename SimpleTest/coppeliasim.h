@@ -32,7 +32,7 @@ public:
 // Class Robot
 class CoppeliaRobot: public CoppeliaSim{
 public:
-	void init(simxChar * robot_name);
+	void init(string robot_name);
 	void setPosition(float pos[6], bool wait);
 	void setPosition(float x, float y, float z, float w, float p, float r, bool wait);
 	void setPosition(float x, float y, float z, float w, float p, float r);
