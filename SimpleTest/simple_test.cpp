@@ -21,7 +21,6 @@ void coppelia_function_test() {
 
 	while (1);
 
-
 	// Get object handles:
 	int simCuboid;
 	simxGetObjectHandle(id, "/Cuboid", &simCuboid, simx_opmode_oneshot_wait);

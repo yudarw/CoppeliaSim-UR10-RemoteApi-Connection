@@ -467,3 +467,84 @@ void CoppeliaRobot::setSpeed(int velocity)
 		NULL, NULL,							// outBufferSize, outBuffer
 		simx_opmode_blocking);
 }
+
+
+
+
+
+
+
+
+
+CoppeliaRobotMobile::CoppeliaRobotMobile(int type, string name) {
+	robot_name = name;
+	robot_type = type;
+}
+
+int CoppeliaRobotMobile::init() {
+	char str[128];
+
+	simxGetObjectHandle(clientID, robot_name.c_str(), &robot_handle, simx_opmode_blocking);
+	printf("Mobile robot handle: %d \n", robot_handle);
+
+	if (robot_type == omniplatform) {
+		for (int i = 0; i < 4; i++) {
+			sprintf(str, "%s/link[%d]/regularRotation", robot_name.c_str(), i);
+			simxGetObjectHandle(clientID, str, &motor_handle[i], simx_opmode_blocking);
+			printf("   Motor Handle [%d] = %d \n", i, motor_handle[i]);
+		}
+	}
+
+	else if (robot_type == pioneer) {
+		sprintf(str, "%s/leftMotor", robot_name.c_str());
+		simxGetObjectHandle(clientID, str, &motor_handle[0], simx_opmode_blocking);
+		sprintf(str, "%s/rightMotor", robot_name.c_str());
+		simxGetObjectHandle(clientID, str, &motor_handle[1], simx_opmode_blocking);
+
+		printf("   Motor Handle [0] = %d \n", motor_handle[0]);
+		printf("   Motor Handle [1] = %d \n", motor_handle[1]);
+	}
+
+	return robot_handle;
+}
+
+void CoppeliaRobotMobile::move(float v_left, float v_right) {
+	
+	v_left /= 1000;		// mm/s
+	v_right /= 1000;	// mm/s
+
+	if (robot_type == pioneer) {
+		simxSetJointTargetVelocity(clientID, motor_handle[0], v_left, simx_opmode_oneshot);
+		simxSetJointTargetVelocity(clientID, motor_handle[1], v_right, simx_opmode_oneshot);
+	}
+
+}
+
+
+
+
+
+// ================== Coppelia Sensor ========================= //
+CoppeliaSensor::CoppeliaSensor(int type, string name) {
+	sensor_type = type;
+	sensor_name = name;
+}
+
+int CoppeliaSensor::init() {
+	simxGetObjectHandle(clientID, sensor_name.c_str(), &sensor_handle, simx_opmode_blocking);
+	
+	if (sensor_handle != 0) {
+		if (sensor_type == vision_sensor) {
+			simxGetVisionSensorImage(clientID, sensor_handle, resolution, &image, 0, simx_opmode_streaming);
+		}
+
+	}
+	else {
+		printf("Failed to initialize sensor!!! \n");
+	}
+	return sensor_handle;
+}
+
+void CoppeliaSensor::get_image(simxUChar* img, int res[2]) {
+	simxGetVisionSensorImage(clientID, sensor_handle, res, &img, 0, simx_opmode_buffer);
+}

@@ -1,17 +1,25 @@
 #include "coppeliasim.h"
 #include "simple_test.h"
+#include <iostream>
+
+using namespace std;
 
 CoppeliaSim mSim;
 CoppeliaRobot mRobot;
 
+CoppeliaRobotMobile omni(omniplatform, "/OmniPlatform");
+CoppeliaRobotMobile mPioneer(pioneer, "/PioneerP3DX");
+CoppeliaSensor camera(vision_sensor, "/Vision_sensor");
+
 int main(int argc, char* argv[]){
 
-	//coppelia_function_test();
-
-	// Initialise robot connection
+	// Initialise coppeliasim connection
 	if (mSim.connect(19997)) {
 		mSim.startSimulation();
 	}
+
+	camera.init();
+	getchar();
 
 	mRobot.init("UR10");
 

@@ -7,6 +7,8 @@
 #include <fstream>
 //#include <msclr\marshal_cppstd.h>
 
+using namespace std;
+
 extern "C" {
 #include "extApi.h"
 }
@@ -32,7 +34,7 @@ public:
 
 };
 
-// Class Robot
+// Class Robot for robot arm
 class CoppeliaRobot: public CoppeliaSim{
 public:
 	void init(string robot_name);
@@ -42,7 +44,6 @@ public:
 	void setJointPosition(float joint[6]);
 	void setJointPosition(float J1, float J2, float J3, float J4, float J5, float J6);
 	void setJointPosition(int num, float tetha);	// Set single joint position	
-
 	void setPosition2(float pos[6]);				// Direct set object position (no speed control)
 	void readCurrentJointPos(float joint_pos[6]);
 	void readObjectPosition(string object_name, float current_pos[6]);
@@ -51,11 +52,8 @@ public:
 	void setSpeed(int velocity);
 	void gripperCatch();
 	void gripperRelease();
-
-
 	void readPosition(float pos[6]);
 	void readForce(float force[6]);
-
 	void getObjectMatrix(float M[4][4]);
 
 public:
@@ -63,7 +61,6 @@ public:
 	int forceSensor_handle;
 	simxChar * script_name;
 	string scriptName;
-
 	//Ik Handle
 	int ikTargetHandle;
 	int ikTipHandle;
@@ -92,3 +89,39 @@ private:
 	int forceHandle;
 	int clientID;
 };
+
+
+enum { omniplatform, pioneer, kuka_youbot };
+enum { vision_sensor, force_sensor, proximity_sensor };
+
+// Class for mobile robot
+class CoppeliaRobotMobile : public CoppeliaSim {
+private:
+	int robot_type;
+	int robot_handle;
+	int motor_handle[4];
+	string robot_name;
+
+
+public:
+	CoppeliaRobotMobile(int type, string name);
+	int init();
+	void move(float v_left, float v_right);
+};
+
+
+// Class sensor 
+class CoppeliaSensor : public CoppeliaSim {
+private:
+	int sensor_handle;
+	int sensor_type;
+	string sensor_name;
+	simxUChar* image;
+	int resolution[2];
+
+public:
+	CoppeliaSensor(int type, string name);
+	int init();
+	void get_image(simxUChar * img, int res[2]);
+};
+
